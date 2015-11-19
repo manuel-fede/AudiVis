@@ -1,0 +1,3 @@
+ws2812b
+
+9*8 led matrix, will use 216 bytes of memory of 380 bytes --> 164 bytes left for other operations

@@ -1,0 +1,2 @@
+1bit = 1.25us (81 leds, 24 bits per led) --> 2.43ms
+s/frames = ms --> frames = 411 frames
