@@ -17,6 +17,9 @@
 <center>
 #Audio Visualiser
 #RGB LED Display
+github.com/manuel-fede/AudiVis
+
+<sub>(c) Manuel Federanko</sub>
 </center>
 
 <div class="pagebreak"></div>
@@ -25,12 +28,23 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**
 
-- [Audio Visualiser - RGB LED Display](#audio-visualiser---rgb-led-display)
-  - [Erste Beschreibung](#erste-beschreibung)
-  - [Messungen der Audiosignale](#messungen-der-audiosignale)
-      - [Output eines Xperia Z](#output-eines-xperia-z)
-      - [Output eines MacBook Pro](#output-eines-macbook-pro)
-  - [Blockschaltbild](#blockschaltbild)
+- [1. Erste Beschreibung](#1-erste-beschreibung)
+- [2. Messungen der Audiosignale](#2-messungen-der-audiosignale)
+  - [2.1. Output eines Xperia Z](#21-output-eines-xperia-z)
+  - [2.2. Output eines MacBook Pro](#22-output-eines-macbook-pro)
+- [3. Blockschaltbild](#3-blockschaltbild)
+- [4. Verstärker & Filter](#4-verst%C3%A4rker-&-filter)
+  - [4.1. Verstärker](#41-verst%C3%A4rker)
+  - [4.2. Filter](#42-filter)
+    - [4.1.1 Berechnung](#411-berechnung)
+- [5. LED Matrix](#5-led-matrix)
+  - [5.1. Layout](#51-layout)
+  - [5.2. Schaltplan](#52-schaltplan)
+- [6. Filterplatine](#6-filterplatine)
+  - [6.1 Schaltplan](#61-schaltplan)
+  - [6.2 Layout](#62-layout)
+  - [6.3 Pinbelegung](#63-pinbelegung)
+- [7. Sourcecode](#7-sourcecode)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -86,7 +100,7 @@ Verstärkung = (R<sub>F</sub>+R<sub>N</sub>)/R<sub>N</sub><br>
 ------> *R<sub>N</sub> = 2k5*
 
 ###4.2. Filter
-Die Filtereinheit besteht aus __2 identischen Filterblöcken__, die jeweils die Linke oder Rechte seite übernehmen. Jeder dieser Blöcke besitzt einen Hochpass, Tiefpass und Bandpass.
+Die Filtereinheit besteht aus **2 identischen Filterblöcken**, die jeweils die Linke oder Rechte seite übernehmen. Jeder dieser Blöcke besitzt einen Hochpass, Tiefpass und Bandpass.
 
 _Schaltung eines Blockes:_
 
@@ -94,7 +108,7 @@ _Schaltung eines Blockes:_
 
 <div class="pagebreak"></div>
 
-_Berechnung:_<br>
+####4.1.1 Berechnung
 Da die Frequenzen natürlich nicht willkürlich gewählt sein sollen, werden zuerst die gewünschten Schwellen ausgemacht. Diese wurden unter [fairaudio.com](http://www.fairaudio.de/hifi-lexikon-begriffe/frequenzbereiche-bass-mitten-hochton-grundton.html) aufgelistet.
 
 |Frequenzbereich|  Filter|
@@ -108,23 +122,91 @@ Ausgewählt:
 
 R[1-4]= 1k
 
- - Tiefpass:<br>
-f<sub>g</sub> = 1/(2\*&pi;\*&tau;) = 350Hz<br>
-------> C<sub>2</sub> = 1/(2\*&pi;\*f<sub>g</sub>\*R)<br>
-------> C<sub>2</sub> = 454.728nF<br>
+ - Tiefpass:
 
- - Hochpass:<br>
-f<sub>g</sub> = 2.5kHz<br>
-------> C<sub>1</sub> = 63.662nF<br>
+$$f_{g} = \frac{1}{2 \pi \tau} = 350Hz$$
+
+$$------>C_{2} = \frac{1}{2 \pi f_{g} R} = \frac{1}{2\pi*350Hz*1k} = 454.728nF$$
+
+ - Hochpass:
+
+$$f_{g} = 2.5kHz$$
+
+$$------>C_{1} = \frac{1}{2 \pi f_{g} R} = \frac{1}{2*\pi*2.5kHz*1k} = 63.662nF$$
 
  - Bandpass:<br>
-Da das Ziel eine Bandbreite ist, welche alle Frequenzen eindeckt, welche zwischen dem Hoch und Tiefpass liegen, muss man im Prinzip nur die Werte der Kondensatoren für den jeweils anderen Filter nehmen.<br>
-------> C<sub>3</sub> = 454.728nF<br>
-------> C<sub>4</sub> = 63.662nF<br>
+Da das Ziel eine Bandbreite ist, welche alle Frequenzen eindeckt, welche zwischen dem Hoch und Tiefpass liegen, muss man im Prinzip nur die Werte der Kondensatoren für den jeweils anderen Filter nehmen.
+
+$$------> C_{3} = 454.728nF$$
+
+$$------> C_{4} = 63.662nF$$
 
 <!-- NOTIZ: Entkoppelkondensator hat 22nF -->
 
+<div class="pagebreak"></div>
 
-<div id="footer">
-    &copy; 2013 MyCompany
-</div>
+##5. LED Matrix
+Die Ledmatrix besteht aus 9x9 RGB LEDs (ws2812b), welche jede für sich genommen **60mA** maximal verbraucht. Jede einzelne LED wird einen Entkoppelkondensator von **220nF** benötigen. Durch die Bauweise der LEDs werden nur 2 Datenleitungen (CI, CO) und 2 Versorgungsleitungen (**+5V**, GND) gebraucht.
+
+$$Gesamtstrom = 9*9*60mA = 4.86A$$
+
+$$------>Stromversorgung = 5A$$
+
+###5.1. Layout
+
+<center>
+<img src="imgs/led_m_lo.png" style="max-width:100%"/>
+</center>
+
+<div class="pagebreak"></div>
+
+###5.2. Schaltplan
+
+<center>
+<img src="imgs/led_m_sch_ro.png" style="max-width:67%"/>
+</center>
+
+##6. Filterplatine
+Die Filterplatine beherbergt alle wichtigen Inputs, sowie Outputs. Auf ihr befinden sich die Audiofilter, der Prozessor sowie die Programmierpins. Ein OPV wird verwendet, um die Audiosignale auf ein verwertbares Level zu bringen, während die Potentiometer dazu dienen ein einfaches Einstellen der Sensitivität zu ermöglichen.
+
+###6.1 Schaltplan
+
+<center>
+<img src="imgs/hauptprint.png" style="max-width:97%">
+</center>
+
+<div class="pagebreak"></div>
+
+###6.2 Layout
+
+<center>
+<img src="imgs/hauptprint_lo.png" style="width:68%">
+</center>
+
+<div class="pagebreak"></div>
+
+###6.3 Pinbelegung
+
+|             Port|             Pin#|   Analog/Digital|             Benutzung|                          Notiz|
+|----------------:|----------------:|----------------:|---------------------:|------------------------------:|
+|              RA0|               17|              AN0|  Tiefpassfilter Links|                               |
+|              RA1|               18|              AN1|  Hochpassfilter Links|                               |
+|              RA2|                1|              AN2|        Bandpass Links|                               |
+|              RA3|                2|              AN3| Tiefpassfilter Rechts|                               |
+|              RA4|                3|              AN4| Hochpassfilter Rechts|                               |
+|              RA5|                4|                -|PICKit programmer con.|                   master clear|
+|              RA6|               15|                -|       LED Matrix Data|                               |
+|              RA7|               16|                -|        LED Matrix CLK|                  nicht benutzt|
+|              RB0|                6|                -|              IO Input|                               |
+|              RB1|                7|             AN10|             IO Output|                               |
+|              RB2|                8|              AN9|                      |                               |
+|              RB3|                9|              AN8|                      |                               |
+|              RB4|               10|              AN7|                      |                               |
+|              RB5|               11|              AN5|       Bandpass Rechts|                               |
+|              RB6|               12|              AN6|PICKit programmer con.|        nur als programmier Pin|
+|              RB7|               13|                -|PICKit programmer con.|        nur als programmier Pin|
+|              VDD|               14|                -|          Power supply|                               |
+|              VSS|                5|                -|          Power supply|                               |
+
+##7. Sourcecode
+Da bis dato noch keine Codebasis geschrieben wurde, verweise ich auf die Projektseite, auf welcher der Sourcecode erscheinen wird.
